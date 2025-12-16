@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USAFE Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen">
+
+  <!-- HEADER -->
+  <div class="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+    <h1 class="text-2xl font-bold">Your Profile</h1>
+
+    <div class="flex items-center gap-4">
+      <span id="userDisplay" class="text-gray-300">Loading...</span>
+      <img id="avatarImg" class="w-10 h-10 rounded border border-gray-600" src="">
+      <button id="logoutBtn" class="text-red-400 hover:text-red-300">Logout</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="max-w-3xl mx-auto p-6">
+
+    <!-- Avatar + Name -->
+    <div class="flex items-center gap-6 mb-8">
+      <img id="bigAvatar" class="w-32 h-32 rounded border border-gray-700" src="">
+      <div>
+        <h2 id="displayName" class="text-3xl font-bold">Loading...</h2>
+        <p id="usernameTag" class="text-gray-400">@username</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+
+      <div class="bg-gray-800 p-4 rounded border border-gray-700">
+        <p class="text-gray-400 text-sm">Rank</p>
+        <p id="rank" class="text-2xl font-bold text-blue-400">Loading...</p>
+      </div>
+
+      <div class="bg-gray-800 p-4 rounded border border-gray-700">
+        <p class="text-gray-400 text-sm">Points</p>
+        <p id="points" class="text-2xl font-bold text-green-400">Loading...</p>
+      </div>
+
+      <div class="bg-gray-800 p-4 rounded border border-gray-700">
+        <p class="text-gray-400 text-sm">Valor</p>
+        <p id="valor" class="text-2xl font-bold text-yellow-400">Loading...</p>
+      </div>
+
+      <div class="bg-gray-800 p-4 rounded border border-gray-700">
+        <p class="text-gray-400 text-sm">Medals</p>
+        <p id="medalCount" class="text-2xl font-bold text-purple-400">Loading...</p>
+      </div>
+
+    </div>
+
+    <!-- Medal List -->
+    <div class="bg-gray-800 p-6 rounded border border-gray-700">
+      <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+        <i data-feather="award"></i> Medals Awarded
+      </h3>
+
+      <ul id="medalList" class="space-y-3 text-gray-300">
+        <li>Loading medals...</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <script>
+    const API = "https://usafe-staff-portal.onrender.com";
+
+    const token = localStorage.getItem("usafe_token");
+    const robloxId = localStorage.getItem("usafe_roblox_id");
+    const username = localStorage.getItem("usafe_username");
+    const displayName = localStorage.getItem("usafe_display_name");
+
+    if (!token || !robloxId) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("userDisplay").textContent =
+      `${displayName} (@${username})`;
+
+    document.getElementById("displayName").textContent = displayName;
+    document.getElementById("usernameTag").textContent = `@${username}`;
+
+    // Load avatars
+    async function loadAvatars() {
+      try {
+        const res = await fetch(
+          `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=420x420&format=Png&isCircular=false`
+        );
+        const data = await res.json();
+        const url = data?.data?.[0]?.imageUrl;
+
+        document.getElementById("avatarImg").src = url || "";
+        document.getElementById("bigAvatar").src = url || "";
+      } catch {
+        document.getElementById("avatarImg").src = "";
+        document.getElementById("bigAvatar").src = "";
+      }
+    }
+
+    loadAvatars();
+
+    // Load profile data
+    async function loadProfile() {
+      try {
+        const res = await fetch(`${API}/api/users/${robloxId}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        const user = await res.json();
+
+        document.getElementById("rank").textContent = user.rank;
+        document.getElementById("points").textContent = user.points;
+        document.getElementById("valor").textContent = user.valor;
+        document.getElementById("medalCount").textContent = user.medals.length;
+
+        const medalList = document.getElementById("medalList");
+        medalList.innerHTML = "";
+
+        if (user.medals.length === 0) {
+          medalList.innerHTML = "<li>No medals awarded yet.</li>";
+        } else {
+          user.medals.forEach(m => {
+            const li = document.createElement("li");
+            li.textContent = `${m.name} — ${m.reason}`;
+            medalList.appendChild(li);
+          });
+        }
+
+      } catch (err) {
+        document.getElementById("rank").textContent = "Error";
+      }
+    }
+
+    loadProfile();
+
+    // Logout
+    document.getElementById("logoutBtn").onclick = () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    };
+
+    feather.replace();
+  </script>
+
+</body>
+</html>
