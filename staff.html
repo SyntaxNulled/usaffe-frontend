@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USAFE Staff Panel</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vintage: {
+              50: '#f8f5e8',
+              100: '#e8d7a8',
+              200: '#d8c79a',
+              300: '#c9b78c',
+              400: '#b9a77e',
+              500: '#8a7a4f',
+              600: '#6b5f3a',
+              700: '#4d4326',
+              800: '#2f2d27',
+              900: '#1a1a17',
+            },
+            military: {
+              50: '#f2e7c9',
+              100: '#d8c79a',
+              200: '#c9b78c',
+              300: '#b9a77e',
+              400: '#8a7a4f',
+              500: '#6b5f3a',
+              600: '#4d4326',
+              700: '#2f2d27',
+              800: '#1a1a17',
+              900: '#0a0a09',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-military-800 text-vintage-100 font-mono">
+
+<!-- BACK BUTTON -->
+<button onclick="window.location.href='dashboard.html'"
+  class="bg-[#b9a77e] hover:bg-[#d8c79a] text-black px-4 py-2 rounded font-bold uppercase tracking-wider m-4">
+  Back to Dashboard
+</button>
+
+<!-- HEADER -->
+<div id="userHeader" class="flex justify-between items-center p-4 border-b border-vintage-600 bg-military-900 relative">
+  <div id="userMenuToggle" class="flex items-center gap-3 cursor-pointer">
+    <img id="avatarImg" src="" class="w-12 h-12 rounded border border-vintage-600 object-cover">
+    <span id="signedInText" class="text-vintage-200">Loading...</span>
+  </div>
+
+  <div id="dropdownMenu"
+    class="absolute right-4 top-16 bg-military-900 border border-vintage-600 rounded hidden w-40 flex-col">
+    <button onclick="window.location.href='profile.html'" class="p-2 text-left hover:bg-military-700">Profile</button>
+    <button onclick="window.open('https://www.roblox.com/users/' + robloxId + '/profile')"
+      class="p-2 text-left hover:bg-military-700">Roblox Profile</button>
+    <button id="logoutBtn" class="p-2 text-left text-red-400 hover:bg-military-700">Logout</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+
+  <header class="mb-10">
+    <h1 class="text-4xl md:text-5xl font-bold text-center tracking-wider uppercase border-b-4 border-vintage-500 pb-3 text-vintage-200">
+      <span class="text-vintage-400">USAFE</span> Staff Command Panel
+    </h1>
+    <p class="text-center text-vintage-400 italic mt-2">Authorized Personnel Only</p>
+  </header>
+
+  <!-- STATUS -->
+  <section class="mb-10 bg-military-700 p-6 rounded-lg border-2 border-vintage-500 shadow-lg">
+    <h2 class="text-xl font-bold uppercase tracking-wider text-vintage-200 flex items-center mb-4">
+      <i data-feather="radio" class="mr-2"></i> Command Status
+    </h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="bg-military-800 p-4 rounded border border-vintage-600">
+        <p class="text-vintage-400 text-xs uppercase">Active Personnel</p>
+        <p id="statusPersonnel" class="text-3xl font-bold">-</p>
+      </div>
+
+      <div class="bg-military-800 p-4 rounded border border-vintage-600">
+        <p class="text-vintage-400 text-xs uppercase">Your Rank</p>
+        <p id="statusRank" class="text-3xl font-bold">-</p>
+      </div>
+
+      <div class="bg-military-800 p-4 rounded border border-vintage-600">
+        <p class="text-vintage-400 text-xs uppercase">Trainings Today</p>
+        <p id="statusTrainings" class="text-3xl font-bold">-</p>
+      </div>
+
+      <div class="bg-military-800 p-4 rounded border border-vintage-600">
+        <p class="text-vintage-400 text-xs uppercase">Medals Awarded</p>
+        <p id="statusMedals" class="text-3xl font-bold">-</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- LEFT -->
+    <div class="space-y-6">
+
+      <!-- CREATE TRAINING -->
+      <section class="bg-military-700 p-6 rounded-lg border-2 border-vintage-500 shadow-lg">
+        <h2 class="text-xl font-bold uppercase tracking-wider mb-4 flex items-center">
+          <i data-feather="calendar" class="mr-2"></i> Create Training
+        </h2>
+
+        <label class="block mb-1">Training Type</label>
+        <select id="trainingType" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+          <option value="BMT">Basic Military Training</option>
+          <option value="Drill">Drill Session</option>
+          <option value="Combat">Combat Training</option>
+          <option value="Flight">Flight Training</option>
+          <option value="Inspection">Inspection</option>
+        </select>
+
+        <label class="block mt-3 mb-1">Date & Time</label>
+        <input id="trainingDate" type="datetime-local"
+          class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+
+        <label class="block mt-3 mb-1">Host User ID</label>
+        <input id="trainingHost" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+
+        <button onclick="createTraining()"
+          class="w-full bg-vintage-600 hover:bg-vintage-500 text-black font-bold py-2 rounded mt-4">
+          Create Training
+        </button>
+
+        <p id="trainingResult" class="text-sm mt-2"></p>
+      </section>
+
+      <!-- ADD ATTENDEES -->
+      <section class="bg-military-700 p-6 rounded-lg border-2 border-vintage-500 shadow-lg">
+        <h2 class="text-xl font-bold uppercase mb-4 flex items-center">
+          <i data-feather="users" class="mr-2"></i> Add Attendees
+        </h2>
+
+        <label class="block mb-1">Training ID</label>
+        <input id="attTrainingId" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+
+        <label class="block mt-3 mb-1">User IDs (comma separated)</label>
+        <textarea id="attendees" class="w-full bg-military-800 border border-vintage-600 p-2 rounded h-24"></textarea>
+
+        <button onclick="addAttendees()"
+          class="w-full bg-vintage-600 hover:bg-vintage-500 text-black font-bold py-2 rounded mt-4">
+          Add Attendees
+        </button>
+
+        <p id="attendeeResult" class="text-sm mt-2"></p>
+      </section>
+
+      <!-- POINTS -->
+      <section class="bg-military-700 p-6 rounded-lg border-2 border-vintage-500 shadow-lg">
+        <h2 class="text-xl font-bold uppercase mb-4 flex items-center">
+          <i data-feather="bar-chart-2" class="mr-2"></i> Adjust Points / Valor
+        </h2>
+
+        <label class="block mb-1">User ID</label>
+        <input id="pointsUserId" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+
+        <div class="grid grid-cols-2 gap-4 mt-3">
+          <div>
+            <label class="block mb-1">Points</label>
+            <input id="pointsDelta" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+          </div>
+
+          <div>
+            <label class="block mb-1">Valor</label>
+            <input id="valorDelta" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+          </div>
+        </div>
+
+        <button onclick="adjustPoints()"
+          class="w-full bg-vintage-600 hover:bg-vintage-500 text-black font-bold py-2 rounded mt-4">
+          Apply Changes
+        </button>
+
+        <p id="pointsResult" class="text-sm mt-2"></p>
+      </section>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="space-y-6">
+
+      <!-- MEDALS -->
+      <section class="bg-military-700 p-6 rounded-lg border-2 border-vintage-500 shadow-lg">
+        <h2 class="text-xl font-bold uppercase mb-4 flex items-center">
+          <i data-feather="award" class="mr-2"></i> Award Medal
+        </h2>
+
+        <label class="block mb-1">Medal</label>
+        <select id="medalId" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+          <option value="1">Medal of Valor</option>
+          <option value="2">Distinguished Service Medal</option>
+          <option value="3">Good Conduct Medal</option>
+          <option value="4">Air Medal</option>
+        </select>
+
+        <label class="block mt-3 mb-1">User ID</label>
+        <input id="medalUserId" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+
+        <label class="block mt-3 mb-1">Awarded By</label>
+        <input id="medalAwardedBy" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+
+        <label class="block mt-3 mb-1">Reason</label>
+        <textarea id="medalReason" class="w-full bg-military-800 border border-vintage-600 p-2 rounded h-24"></textarea>
+
+        <button onclick="awardMedal()"
+          class="w-full bg-vintage-600 hover:bg-vintage-500 text-black font-bold py-2 rounded mt-4">
+          Award Medal
+        </button>
+
+        <p id="medalResult" class="text-sm mt-2"></p>
+      </section>
+
+      <!-- PROMOTE -->
+      <section class="bg-military-700 p-6 rounded-lg border-2 border-vintage-500 shadow-lg">
+        <h2 class="text-xl font-bold uppercase mb-4 flex items-center">
+          <i data-feather="chevrons-up" class="mr-2"></i> Promote User
+        </h2>
+
+        <label class="block mb-1">User ID</label>
+        <input id="promoteUserId" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+
+        <label class="block mt-3 mb-1">New Rank</label>
+        <select id="newRank" class="w-full bg-military-800 border border-vintage-600 p-2 rounded">
+          <option value="Private">Private</option>
+          <option value="Corporal">Corporal</option>
+          <option value="Sergeant">Sergeant</option>
+          <option value="Staff Sergeant">Staff Sergeant</option>
+          <option value="Lieutenant">Lieutenant</option>
+          <option value="Captain">Captain</option>
+          <option value="Major">Major</option>
+          <option value="Colonel">Colonel</option>
+          <option value="General">General</option>
+        </select>
+
+        <button onclick="promoteUser()"
+          class="w-full bg-vintage-600 hover:bg-vintage-500 text-black font-bold py-2 rounded mt-4">
+          Promote
+        </button>
+
+        <p id="promoteResult" class="text-sm mt-2"></p>
+      </section>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- SCRIPT -->
+<script src="script.js"></script>
+<script>
+  feather.replace();
+</script>
+
+</body>
+</html>
