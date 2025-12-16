@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USAFFE Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
+
+  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+    <h1 class="text-3xl font-bold text-center mb-6">USAFFE Login</h1>
+
+    <label class="block mb-2 text-gray-300">Roblox Username</label>
+    <input id="username" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 mb-4" placeholder="Enter username">
+
+    <label class="block mb-2 text-gray-300">Password</label>
+    <input id="password" type="password" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 mb-6" placeholder="Enter password">
+
+    <button onclick="login()" class="w-full bg-blue-500 hover:bg-blue-600 py-2 rounded font-semibold">
+      Login
+    </button>
+
+    <p id="loginResult" class="text-center text-gray-300 mt-4"></p>
+  </div>
+
+  <script>
+    const API = "https://usafe-staff-portal.onrender.com";
+
+    async function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const result = document.getElementById("loginResult");
+
+      result.textContent = "Logging in...";
+
+      try {
+        const res = await fetch(`${API}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          result.textContent = data.error || "Login failed";
+          return;
+        }
+
+        // Save login data
+        localStorage.setItem("usafe_token", data.token);
+        localStorage.setItem("usafe_roblox_id", data.robloxId);
+        localStorage.setItem("usafe_username", data.username);
+        localStorage.setItem("usafe_display_name", data.displayName);
+
+        result.textContent = "Success! Redirecting...";
+
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 800);
+
+      } catch (err) {
+        result.textContent = "Network error";
+      }
+    }
+  </script>
+
+</body>
+</html>
