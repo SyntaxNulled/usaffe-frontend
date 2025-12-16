@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USAFE Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen">
+
+  <!-- HEADER -->
+  <div class="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+    <h1 class="text-2xl font-bold">USAFE Dashboard</h1>
+
+    <div class="flex items-center gap-4">
+      <span id="userDisplay" class="text-gray-300">Loading...</span>
+      <img id="avatarImg" class="w-10 h-10 rounded border border-gray-600" src="">
+      <button id="logoutBtn" class="text-red-400 hover:text-red-300">Logout</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="max-w-4xl mx-auto p-6">
+
+    <h2 class="text-xl font-semibold mb-4">Welcome, Soldier</h2>
+
+    <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 mb-6">
+      <p class="text-gray-300 mb-2">Rank:</p>
+      <p id="rankDisplay" class="text-3xl font-bold text-blue-400">Loading...</p>
+    </div>
+
+    <!-- BUTTONS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <button onclick="window.location.href='profile.html'"
+        class="bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-semibold flex items-center justify-center gap-2">
+        <i data-feather="user"></i> Profile
+      </button>
+
+      <button id="staffBtn"
+        class="bg-yellow-600 hover:bg-yellow-700 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hidden">
+        <i data-feather="shield"></i> Staff Panel
+      </button>
+
+    </div>
+
+  </div>
+
+  <script>
+    const API = "https://usafe-staff-portal.onrender.com";
+
+    const token = localStorage.getItem("usafe_token");
+    const robloxId = localStorage.getItem("usafe_roblox_id");
+    const username = localStorage.getItem("usafe_username");
+    const displayName = localStorage.getItem("usafe_display_name");
+
+    if (!token || !robloxId) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("userDisplay").textContent =
+      `${displayName} (@${username})`;
+
+    // Load avatar
+    async function loadAvatar() {
+      try {
+        const res = await fetch(
+          `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png&isCircular=false`
+        );
+        const data = await res.json();
+        document.getElementById("avatarImg").src =
+          data?.data?.[0]?.imageUrl || "";
+      } catch {
+        document.getElementById("avatarImg").src = "";
+      }
+    }
+
+    loadAvatar();
+
+    // Load rank + staff access
+    async function loadUserData() {
+      try {
+        const res = await fetch(`${API}/api/users/${robloxId}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        const user = await res.json();
+
+        document.getElementById("rankDisplay").textContent = user.rank;
+
+        const officerRanks = ["2LT", "1LT", "CPT", "MAJ", "LTC", "COL", "GEN"];
+
+        if (officerRanks.includes(user.rank)) {
+          const btn = document.getElementById("staffBtn");
+          btn.classList.remove("hidden");
+          btn.onclick = () => window.location.href = "staff.html";
+        }
+
+      } catch (err) {
+        document.getElementById("rankDisplay").textContent = "Error";
+      }
+    }
+
+    loadUserData();
+
+    // Logout
+    document.getElementById("logoutBtn").onclick = () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    };
+
+    feather.replace();
+  </script>
+
+</body>
+</html>
