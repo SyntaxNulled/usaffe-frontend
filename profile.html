@@ -3,73 +3,155 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>USAFE Profile</title>
+  <title>USAFFE Personnel File</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            military: {
+              50: '#f8f5e8',
+              100: '#ede7cd',
+              200: '#d8cc9a',
+              300: '#c2b167',
+              400: '#ad9643',
+              500: '#8a7535',
+              600: '#6d5c2a',
+              700: '#514321',
+              800: '#3a3018',
+              900: '#231d0f',
+            },
+            valor: {
+              500: '#c53030',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <script src="https://unpkg.com/feather-icons"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-image: url('http://static.photos/vintage/1200x630/42');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+    }
+
+    .military-card {
+      background: rgba(58, 48, 24, 0.85);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(138, 117, 53, 0.3);
+    }
+
+    .rank-badge {
+      box-shadow: 0 0 10px rgba(138, 117, 53, 0.5);
+    }
+  </style>
 </head>
 
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="min-h-screen text-gray-100">
 
   <!-- HEADER -->
-  <div class="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
-    <h1 class="text-2xl font-bold">Your Profile</h1>
+  <header class="bg-military-900 p-4 flex justify-between items-center border-b border-military-700 shadow-lg">
+    <div class="flex items-center gap-2">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/United_States_Army_Air_Forces_emblem.svg/1200px-United_States_Army_Air_Forces_emblem.svg.png"
+           class="h-10 w-10" alt="USAFFE Emblem">
+      <h1 class="text-2xl font-bold font-serif">USAFFE PERSONNEL FILE</h1>
+    </div>
 
     <div class="flex items-center gap-4">
-      <span id="userDisplay" class="text-gray-300">Loading...</span>
-      <img id="avatarImg" class="w-10 h-10 rounded border border-gray-600" src="">
-      <button id="logoutBtn" class="text-red-400 hover:text-red-300">Logout</button>
+      <span id="userDisplay" class="text-military-200">Loading...</span>
+      <img id="avatarImg" class="w-10 h-10 rounded-full border-2 border-military-500 rank-badge" src="">
+      <button id="logoutBtn" class="text-valor-500 hover:text-valor-400 flex items-center gap-1">
+        <i data-feather="log-out"></i> Sign Out
+      </button>
     </div>
-  </div>
+  </header>
 
   <!-- MAIN CONTENT -->
-  <div class="max-w-3xl mx-auto p-6">
+  <main class="max-w-6xl mx-auto p-6">
 
-    <!-- Avatar + Name -->
-    <div class="flex items-center gap-6 mb-8">
-      <img id="bigAvatar" class="w-32 h-32 rounded border border-gray-700" src="">
-      <div>
-        <h2 id="displayName" class="text-3xl font-bold">Loading...</h2>
-        <p id="usernameTag" class="text-gray-400">@username</p>
+    <!-- Soldier Profile -->
+    <div class="military-card rounded-lg p-6 mb-8">
+      <div class="flex flex-col md:flex-row items-center gap-8">
+
+        <div class="relative">
+          <img id="bigAvatar" class="w-40 h-40 rounded-full border-4 border-military-500 rank-badge" src="">
+          <div class="absolute -bottom-2 -right-2 bg-military-700 rounded-full p-2 border-2 border-military-500">
+            <i data-feather="shield" class="text-military-200"></i>
+          </div>
+        </div>
+
+        <div class="text-center md:text-left">
+          <h2 id="displayName" class="text-4xl font-bold font-serif">Loading...</h2>
+          <p id="usernameTag" class="text-military-300 mb-4">@username</p>
+
+          <div class="flex justify-center md:justify-start gap-4">
+            <span class="bg-military-800 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+              <i data-feather="star" class="w-4 h-4 text-military-300"></i>
+              <span id="rank" class="text-military-100">Loading...</span>
+            </span>
+
+            <span class="bg-military-800 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+              <i data-feather="hash" class="w-4 h-4 text-military-300"></i>
+              <span id="valor" class="text-military-100">Loading...</span>
+            </span>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+    <!-- Service Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
-      <div class="bg-gray-800 p-4 rounded border border-gray-700">
-        <p class="text-gray-400 text-sm">Rank</p>
-        <p id="rank" class="text-2xl font-bold text-blue-400">Loading...</p>
+      <div class="military-card p-4 rounded-lg">
+        <p class="text-military-300 text-sm uppercase tracking-wider">Combat Points</p>
+        <p id="points" class="text-3xl font-bold text-military-100">0</p>
+        <div class="h-1 mt-2 bg-gradient-to-r from-military-500 to-military-700 rounded-full"></div>
       </div>
 
-      <div class="bg-gray-800 p-4 rounded border border-gray-700">
-        <p class="text-gray-400 text-sm">Points</p>
-        <p id="points" class="text-2xl font-bold text-green-400">Loading...</p>
+      <div class="military-card p-4 rounded-lg">
+        <p class="text-military-300 text-sm uppercase tracking-wider">Missions Completed</p>
+        <p class="text-3xl font-bold text-military-100">24</p>
+        <div class="h-1 mt-2 bg-gradient-to-r from-military-500 to-military-700 rounded-full"></div>
       </div>
 
-      <div class="bg-gray-800 p-4 rounded border border-gray-700">
-        <p class="text-gray-400 text-sm">Valor</p>
-        <p id="valor" class="text-2xl font-bold text-yellow-400">Loading...</p>
+      <div class="military-card p-4 rounded-lg">
+        <p class="text-military-300 text-sm uppercase tracking-wider">Days Served</p>
+        <p class="text-3xl font-bold text-military-100">186</p>
+        <div class="h-1 mt-2 bg-gradient-to-r from-military-500 to-military-700 rounded-full"></div>
       </div>
 
-      <div class="bg-gray-800 p-4 rounded border border-gray-700">
-        <p class="text-gray-400 text-sm">Medals</p>
-        <p id="medalCount" class="text-2xl font-bold text-purple-400">Loading...</p>
+      <div class="military-card p-4 rounded-lg">
+        <p class="text-military-300 text-sm uppercase tracking-wider">Decorations</p>
+        <p id="medalCount" class="text-3xl font-bold text-military-100">0</p>
+        <div class="h-1 mt-2 bg-gradient-to-r from-military-500 to-military-700 rounded-full"></div>
       </div>
 
     </div>
 
-    <!-- Medal List -->
-    <div class="bg-gray-800 p-6 rounded border border-gray-700">
-      <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
-        <i data-feather="award"></i> Medals Awarded
+    <!-- Medal Display -->
+    <div class="military-card rounded-lg p-6">
+      <h3 class="text-xl font-semibold mb-6 flex items-center gap-2 border-b border-military-700 pb-2">
+        <i data-feather="award" class="text-military-400"></i>
+        <span class="text-military-200">Decorations & Honors</span>
       </h3>
 
-      <ul id="medalList" class="space-y-3 text-gray-300">
-        <li>Loading medals...</li>
+      <ul id="medalList" class="space-y-4">
+        <li class="animate-pulse text-center text-military-400 py-8">Loading service record...</li>
       </ul>
     </div>
 
-  </div>
+  </main>
 
   <script>
     const API = "https://usafe-staff-portal.onrender.com";
@@ -111,10 +193,7 @@
     // Load profile data
     async function loadProfile() {
       try {
-        const res = await fetch(`${API}/api/users/${robloxId}`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-
+        const res = await fetch(`${API}/api/users/${robloxId}`);
         const user = await res.json();
 
         document.getElementById("rank").textContent = user.rank;
@@ -126,17 +205,36 @@
         medalList.innerHTML = "";
 
         if (user.medals.length === 0) {
-          medalList.innerHTML = "<li>No medals awarded yet.</li>";
+          medalList.innerHTML = `
+            <li class="text-center text-military-400 py-8">
+              <i data-feather="frown" class="w-12 h-12 mx-auto mb-2"></i>
+              <p>No decorations awarded yet.</p>
+              <p class="text-sm mt-2">Continue your service to earn honors.</p>
+            </li>`;
         } else {
           user.medals.forEach(m => {
             const li = document.createElement("li");
-            li.textContent = `${m.name} — ${m.reason}`;
+            li.className = "bg-military-800 p-4 rounded-lg border-l-4 border-military-500";
+            li.innerHTML = `
+              <div class="flex items-start gap-4">
+                <div class="bg-military-700 p-3 rounded-full">
+                  <i data-feather="award" class="text-military-300"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-military-100">${m.medal_name}</h4>
+                  <p class="text-military-300 text-sm">${m.reason}</p>
+                  <p class="text-military-500 text-xs mt-1">Awarded on ${m.date}</p>
+                </div>
+              </div>
+            `;
             medalList.appendChild(li);
           });
         }
 
+        feather.replace();
+
       } catch (err) {
-        document.getElementById("rank").textContent = "Error";
+        document.getElementById("rank").textContent = "CLASSIFIED";
       }
     }
 
@@ -147,8 +245,6 @@
       localStorage.clear();
       window.location.href = "login.html";
     };
-
-    feather.replace();
   </script>
 
 </body>
