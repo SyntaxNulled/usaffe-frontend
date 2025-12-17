@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>USAFE Admin Login</title>
+  <style>
+    body { background:#020617;color:#e5e7eb;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
+    .card {background:#0f172a;border:1px solid #334155;border-radius:8px;padding:24px 32px;max-width:500px;width:100%;box-shadow:0 10px 25px rgba(0,0,0,0.6);}
+    input {width:100%;padding:8px 10px;border-radius:4px;border:1px solid #4b5563;background:#020617;color:#e5e7eb;margin-top:4px;}
+    button {margin-top:12px;background:#2563eb;border:none;border-radius:6px;padding:8px 14px;color:#f9fafb;cursor:pointer;font-weight:600;}
+    button:hover {background:#1d4ed8;}
+    .small {font-size:0.8rem;color:#9ca3af;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>USAFE Admin Access</h1>
+    <p class="small">Paste the 12-hour admin key generated from the key generator.</p>
+    <input type="text" id="keyInput" placeholder="6b29c8ee-9d53-4a52-b797-1f8ccbf78076" />
+    <button id="loginBtn">Login</button>
+    <p id="error" class="small" style="color:#f97373;margin-top:0.75rem;"></p>
+
+    <div id="adminContent" style="display:none;margin-top:1rem;">
+      <p class="small">Admin session active.</p>
+      <!-- Here we will later add actual admin tools UI -->
+    </div>
+  </div>
+
+  <script>
+    const API = 'https://usafe-backend.onrender.com';
+
+    const keyInput = document.getElementById('keyInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const errorEl = document.getElementById('error');
+    const adminContent = document.getElementById('adminContent');
+
+    loginBtn.addEventListener('click', async () => {
+      const key = keyInput.value.trim();
+      if (!key) {
+        errorEl.textContent = 'Key is required.';
+        return;
+      }
+      errorEl.textContent = '';
+
+      try {
+        const res = await fetch(`${API}/api/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Login failed.';
+          return;
+        }
+
+        // Save admin token in memory or localStorage
+        localStorage.setItem('usafe_admin_token', data.token);
+        errorEl.textContent = '';
+        adminContent.style.display = 'block';
+
+        // From here, all admin API calls use:
+        // headers: { Authorization: 'Bearer ' + data.token }
+
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = 'Network error.';
+      }
+    });
+
+    // OPTIONAL: change hex in URL every second just for obfuscation
+    function randomHex(len) {
+      const chars = 'abcdef0123456789';
+      let out = '';
+      for (let i = 0; i < len; i++) {
+        out += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return out;
+    }
+
+    setInterval(() => {
+      const newPath = '/admin/' + randomHex(32);
+      window.history.replaceState({}, '', newPath);
+    }, 1000);
+  </script>
+</body>
+</html>
