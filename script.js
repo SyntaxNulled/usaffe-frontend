@@ -1,45 +1,50 @@
 // =============================
-// USAFFE / USAFE STAFF PANEL JS
+// USAFFE STAFF PANEL FRONTEND
 // =============================
 
-const API = "https://usafe-staff-portal.onrender.com";
+// CHANGE THIS to your actual Render backend URL:
+const API = "https://usafe-backend.onrender.com";
 
-// ---- Session & basic setup ----
+// Session data
 const token = localStorage.getItem("usafe_token");
 const robloxId = localStorage.getItem("usafe_roblox_id");
 const username = localStorage.getItem("usafe_username");
 const displayName = localStorage.getItem("usafe_display_name");
 
-// expose robloxId for inline onclick in HTML (Roblox profile link)
+// Expose robloxId for HTML onclick
 window.robloxId = robloxId;
 
+// Redirect if not logged in
 if (!token || !robloxId) {
   window.location.href = "login.html";
 }
 
-// Header display
+// Display user info
 const signedInText = document.getElementById("signedInText");
 if (signedInText) {
   signedInText.textContent = `${displayName} (@${username})`;
 }
 
-// ---- Avatar load ----
+// =============================
+// LOAD AVATAR (via backend proxy)
+// =============================
 async function loadAvatar() {
   try {
-    const res = await fetch(
-      `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png&isCircular=false`
-    );
+    const res = await fetch(`${API}/api/avatar/${robloxId}`);
     const data = await res.json();
-    const url = data?.data?.[0]?.imageUrl;
 
     const avatarImg = document.getElementById("avatarImg");
-    if (avatarImg) avatarImg.src = url || "";
+    if (avatarImg && data.imageUrl) {
+      avatarImg.src = data.imageUrl;
+    }
   } catch (err) {
-    console.warn("Failed to load avatar", err);
+    console.warn("Failed to load avatar:", err);
   }
 }
 
-// ---- Dropdown menu ----
+// =============================
+// DROPDOWN MENU
+// =============================
 (function setupUserDropdown() {
   const toggle = document.getElementById("userMenuToggle");
   const menu = document.getElementById("dropdownMenu");
@@ -65,56 +70,45 @@ async function loadAvatar() {
   }
 })();
 
-// ---- Command status (top cards) ----
-
+// =============================
+// LOAD SELF STATUS
+// =============================
 async function loadSelfStatus() {
   try {
     const res = await fetch(`${API}/api/users/${robloxId}`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to load user");
 
     const rankEl = document.getElementById("statusRank");
     if (rankEl) rankEl.textContent = data.rank || "Unassigned";
   } catch (err) {
-    console.error("Failed to load self status", err);
-    const rankEl = document.getElementById("statusRank");
-    if (rankEl) rankEl.textContent = "Unknown";
+    console.error("Failed to load self status:", err);
   }
 }
 
-// This endpoint is a suggestion – adjust to your real stats route
+// =============================
+// LOAD COMMAND STATS
+// =============================
 async function loadCommandStats() {
-  const personnelEl = document.getElementById("statusPersonnel");
-  const trainingsEl = document.getElementById("statusTrainings");
-  const medalsEl = document.getElementById("statusMedals");
-
   try {
     const res = await fetch(`${API}/api/admin/stats`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to load stats");
 
-    if (personnelEl) personnelEl.textContent = data.active_personnel ?? "-";
-    if (trainingsEl) trainingsEl.textContent = data.trainings_today ?? "-";
-    if (medalsEl) medalsEl.textContent = data.medals_awarded ?? "-";
+    document.getElementById("statusPersonnel").textContent = data.active_personnel;
+    document.getElementById("statusTrainings").textContent = data.trainings_today;
+    document.getElementById("statusMedals").textContent = data.medals_awarded;
   } catch (err) {
-    console.warn("Failed to load command stats (you can wire to your own endpoint)", err);
-    if (personnelEl) personnelEl.textContent = "-";
-    if (trainingsEl) trainingsEl.textContent = "-";
-    if (medalsEl) medalsEl.textContent = "-";
+    console.warn("Failed to load command stats:", err);
   }
 }
 
-// ---- Create Training ----
-
+// =============================
+// CREATE TRAINING
+// =============================
 async function createTraining() {
-  const typeEl = document.getElementById("trainingType");
-  const dateEl = document.getElementById("trainingDate");
-  const hostEl = document.getElementById("trainingHost");
+  const type = document.getElementById("trainingType").value.trim();
+  const date = document.getElementById("trainingDate").value.trim();
+  const hostId = document.getElementById("trainingHost").value.trim();
   const resultEl = document.getElementById("trainingResult");
-
-  const type = typeEl.value.trim();
-  const date = dateEl.value.trim();
-  const hostId = hostEl.value.trim();
 
   if (!type || !date || !hostId) {
     resultEl.textContent = "Fill in all fields.";
@@ -123,20 +117,13 @@ async function createTraining() {
   }
 
   resultEl.textContent = "Creating training...";
-  resultEl.className = "text-sm mt-2 text-vintage-200";
+  resultEl.className = "text-sm mt-2 text-yellow-300";
 
   try {
     const res = await fetch(`${API}/api/trainings/create`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        type,
-        date,      // ISO local string from input
-        host_id: Number(hostId),
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, date, host_id: hostId })
     });
 
     const data = await res.json();
@@ -147,29 +134,21 @@ async function createTraining() {
       return;
     }
 
-    resultEl.textContent = `Training created. ID: ${data.training_id || "N/A"}`;
+    resultEl.textContent = `Training created (ID: ${data.training_id})`;
     resultEl.className = "text-sm mt-2 text-green-400";
-
-    // Optional: clear fields
-    // dateEl.value = "";
-    // hostEl.value = "";
-
   } catch (err) {
-    console.error(err);
-    resultEl.textContent = "Network error while creating training.";
+    resultEl.textContent = "Network error.";
     resultEl.className = "text-sm mt-2 text-red-400";
   }
 }
 
-// ---- Add Attendees ----
-
+// =============================
+// ADD ATTENDEES
+// =============================
 async function addAttendees() {
-  const idEl = document.getElementById("attTrainingId");
-  const attendeesEl = document.getElementById("attendees");
+  const trainingId = document.getElementById("attTrainingId").value.trim();
+  const raw = document.getElementById("attendees").value.trim();
   const resultEl = document.getElementById("attendeeResult");
-
-  const trainingId = idEl.value.trim();
-  const raw = attendeesEl.value.trim();
 
   if (!trainingId || !raw) {
     resultEl.textContent = "Training ID and attendee list required.";
@@ -177,30 +156,16 @@ async function addAttendees() {
     return;
   }
 
-  const attendees = raw
-    .split(",")
-    .map((x) => x.trim())
-    .filter((x) => x.length > 0)
-    .map((x) => Number(x))
-    .filter((x) => !Number.isNaN(x));
-
-  if (attendees.length === 0) {
-    resultEl.textContent = "No valid user IDs found.";
-    resultEl.className = "text-sm mt-2 text-red-400";
-    return;
-  }
+  const attendees = raw.split(",").map(x => x.trim()).filter(x => x.length > 0);
 
   resultEl.textContent = "Adding attendees...";
-  resultEl.className = "text-sm mt-2 text-vintage-200";
+  resultEl.className = "text-sm mt-2 text-yellow-300";
 
   try {
     const res = await fetch(`${API}/api/trainings/${trainingId}/attendees`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ attendees }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attendees })
     });
 
     const data = await res.json();
@@ -211,108 +176,83 @@ async function addAttendees() {
       return;
     }
 
-    resultEl.textContent = `Attendees added successfully.`;
+    resultEl.textContent = "Attendees added successfully.";
     resultEl.className = "text-sm mt-2 text-green-400";
   } catch (err) {
-    console.error(err);
-    resultEl.textContent = "Network error while adding attendees.";
+    resultEl.textContent = "Network error.";
     resultEl.className = "text-sm mt-2 text-red-400";
   }
 }
 
-// ---- Adjust Points / Valor ----
-
+// =============================
+// ADJUST COMBAT POINTS
+// =============================
 async function adjustPoints() {
-  const userIdEl = document.getElementById("pointsUserId");
-  const pointsEl = document.getElementById("pointsDelta");
-  const valorEl = document.getElementById("valorDelta");
+  const userId = document.getElementById("pointsUserId").value.trim();
+  const delta = Number(document.getElementById("pointsDelta").value || 0);
   const resultEl = document.getElementById("pointsResult");
 
-  const userId = userIdEl.value.trim();
-  const pointsDelta = Number(pointsEl.value || 0);
-  const valorDelta = Number(valorEl.value || 0);
-
   if (!userId) {
-    resultEl.textContent = "User ID is required.";
-    resultEl.className = "text-sm mt-2 text-red-400";
-    return;
-  }
-
-  if (Number.isNaN(pointsDelta) || Number.isNaN(valorDelta)) {
-    resultEl.textContent = "Points and Valor must be numbers.";
+    resultEl.textContent = "User ID required.";
     resultEl.className = "text-sm mt-2 text-red-400";
     return;
   }
 
   resultEl.textContent = "Applying changes...";
-  resultEl.className = "text-sm mt-2 text-vintage-200";
+  resultEl.className = "text-sm mt-2 text-yellow-300";
 
   try {
     const res = await fetch(`${API}/api/users/${userId}/adjust`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        pointsDelta,
-        valorDelta,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ combatDelta: delta })
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-      resultEl.textContent = data.error || "Failed to adjust points/valor.";
+      resultEl.textContent = data.error || "Failed to adjust combat points.";
       resultEl.className = "text-sm mt-2 text-red-400";
       return;
     }
 
-    resultEl.textContent = "Adjustments applied successfully.";
+    resultEl.textContent = "Combat points updated.";
     resultEl.className = "text-sm mt-2 text-green-400";
   } catch (err) {
-    console.error(err);
-    resultEl.textContent = "Network error while adjusting points/valor.";
+    resultEl.textContent = "Network error.";
     resultEl.className = "text-sm mt-2 text-red-400";
   }
 }
 
-// ---- Award Medal ----
-
+// =============================
+// AWARD MEDAL
+// =============================
 async function awardMedal() {
-  const medalIdEl = document.getElementById("medalId");
-  const userIdEl = document.getElementById("medalUserId");
-  const awardedByEl = document.getElementById("medalAwardedBy");
-  const reasonEl = document.getElementById("medalReason");
+  const medalId = Number(document.getElementById("medalId").value);
+  const userId = document.getElementById("medalUserId").value.trim();
+  const awardedBy = document.getElementById("medalAwardedBy").value.trim();
+  const reason = document.getElementById("medalReason").value.trim();
   const resultEl = document.getElementById("medalResult");
 
-  const medal_id = Number(medalIdEl.value);
-  const user_id = Number(userIdEl.value.trim());
-  const awarded_by = Number(awardedByEl.value.trim());
-  const reason = reasonEl.value.trim();
-
-  if (!medal_id || !user_id || !awarded_by || !reason) {
-    resultEl.textContent = "All fields are required.";
+  if (!medalId || !userId || !awardedBy || !reason) {
+    resultEl.textContent = "All fields required.";
     resultEl.className = "text-sm mt-2 text-red-400";
     return;
   }
 
   resultEl.textContent = "Awarding medal...";
-  resultEl.className = "text-sm mt-2 text-vintage-200";
+  resultEl.className = "text-sm mt-2 text-yellow-300";
 
   try {
     const res = await fetch(`${API}/api/medals/award`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        medal_id,
-        user_id,
-        awarded_by,
-        reason,
-      }),
+        medal_id: medalId,
+        user_roblox_id: userId,
+        awarded_by_roblox_id: awardedBy,
+        reason
+      })
     });
 
     const data = await res.json();
@@ -326,39 +266,33 @@ async function awardMedal() {
     resultEl.textContent = "Medal awarded successfully.";
     resultEl.className = "text-sm mt-2 text-green-400";
   } catch (err) {
-    console.error(err);
-    resultEl.textContent = "Network error while awarding medal.";
+    resultEl.textContent = "Network error.";
     resultEl.className = "text-sm mt-2 text-red-400";
   }
 }
 
-// ---- Promote User ----
-
+// =============================
+// PROMOTE USER
+// =============================
 async function promoteUser() {
-  const userIdEl = document.getElementById("promoteUserId");
-  const rankEl = document.getElementById("newRank");
+  const userId = document.getElementById("promoteUserId").value.trim();
+  const newRank = document.getElementById("newRank").value.trim();
   const resultEl = document.getElementById("promoteResult");
 
-  const userId = userIdEl.value.trim();
-  const newRank = rankEl.value.trim();
-
   if (!userId || !newRank) {
-    resultEl.textContent = "User ID and new rank are required.";
+    resultEl.textContent = "User ID and rank required.";
     resultEl.className = "text-sm mt-2 text-red-400";
     return;
   }
 
   resultEl.textContent = "Processing promotion...";
-  resultEl.className = "text-sm mt-2 text-vintage-200";
+  resultEl.className = "text-sm mt-2 text-yellow-300";
 
   try {
     const res = await fetch(`${API}/api/users/${userId}/promote`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ newRank }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newRank })
     });
 
     const data = await res.json();
@@ -372,13 +306,14 @@ async function promoteUser() {
     resultEl.textContent = `User promoted to ${newRank}.`;
     resultEl.className = "text-sm mt-2 text-green-400";
   } catch (err) {
-    console.error(err);
-    resultEl.textContent = "Network error while promoting user.";
+    resultEl.textContent = "Network error.";
     resultEl.className = "text-sm mt-2 text-red-400";
   }
 }
 
-// ---- Init ----
+// =============================
+// INIT
+// =============================
 (function init() {
   loadAvatar();
   loadSelfStatus();
