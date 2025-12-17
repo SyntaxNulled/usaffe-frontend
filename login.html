@@ -1,68 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>USAFFE Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USAFE Verification Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
 
-  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
-    <h1 class="text-3xl font-bold text-center mb-6">USAFFE Login</h1>
+  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700">
+    <h1 class="text-3xl font-bold text-center mb-2">USAFE Login</h1>
+    <p class="text-center text-gray-400 mb-6 text-sm">
+      Verify your Roblox account by adding a code to your bio.
+    </p>
 
-    <label class="block mb-2 text-gray-300">Roblox Username</label>
-    <input id="username" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 mb-4" placeholder="Enter username">
+    <!-- Step 1: Roblox Username -->
+    <label class="block mb-2 text-gray-300 text-sm">Roblox Username</label>
+    <input
+      id="username"
+      class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder="Enter your Roblox username"
+    />
 
-    <label class="block mb-2 text-gray-300">Password</label>
-    <input id="password" type="password" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 mb-6" placeholder="Enter password">
-
-    <button onclick="login()" class="w-full bg-blue-500 hover:bg-blue-600 py-2 rounded font-semibold">
-      Login
+    <button
+      onclick="startFlow()"
+      class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-semibold mb-3"
+    >
+      Start Verification
     </button>
 
-    <p id="loginResult" class="text-center text-gray-300 mt-4"></p>
+    <!-- Step 2: Verify Button (hidden at first) -->
+    <button
+      id="verifyBtn"
+      onclick="checkVerification()"
+      class="w-full bg-green-600 hover:bg-green-700 py-2 rounded font-semibold mb-3 hidden"
+    >
+      I Added the Code — Verify Me
+    </button>
+
+    <!-- Status / Instructions -->
+    <div
+      id="loginResult"
+      class="text-center text-gray-300 mt-4 text-sm min-h-[4rem]"
+    >
+      Enter your Roblox username to begin.
+    </div>
+
+    <!-- Helper text -->
+    <div class="mt-4 text-xs text-gray-500 border-t border-gray-700 pt-3">
+      <p class="font-semibold mb-1">How it works:</p>
+      <ol class="list-decimal list-inside space-y-1">
+        <li>We find your Roblox account.</li>
+        <li>We give you a code like <span class="text-blue-400 font-mono">USAFE-XXXXXX</span>.</li>
+        <li>You paste it into your Roblox profile bio.</li>
+        <li>You click "Verify Me" and we confirm it’s there.</li>
+      </ol>
+    </div>
   </div>
 
   <script>
-    const API = "https://usafe-staff-portal.onrender.com";
+    const API = "https://usafe-staff-portal.onrender.com"; // your backend base URL
 
-    async function login() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const result = document.getElementById("loginResult");
+    let currentRobloxId = null;
+    let currentUsername = null;
+    let currentDisplayName = null;
 
-      result.textContent = "Logging in...";
+    // Entire flow starter
+    async function startFlow() {
+      const usernameInput = document.getElementById("username");
+      const status = document.getElementById("loginResult");
+      const verifyBtn = document.getElementById("verifyBtn");
+
+      const username = usernameInput.value.trim();
+      if (!username) {
+        status.textContent = "Please enter your Roblox username.";
+        return;
+      }
+
+      verifyBtn.classList.add("hidden");
+      status.textContent = "Looking up Roblox user...";
 
       try {
-        const res = await fetch(`${API}/api/auth/login`, {
+        // Step 1: Roblox lookup
+        const lookupRes = await fetch(`${API}/api/roblox/lookup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ username })
+        });
+
+        const lookupData = await lookupRes.json();
+
+        if (!lookupRes.ok) {
+          status.textContent = lookupData.error || "Roblox user not found.";
+          return;
+        }
+
+        currentRobloxId = lookupData.roblox_id;
+        currentUsername = lookupData.username;
+        currentDisplayName = lookupData.display_name;
+
+        status.innerHTML =
+          `User found: <span class="font-semibold">${currentDisplayName}</span> ` +
+          `<span class="text-gray-400">(@${currentUsername})</span><br>` +
+          `Generating verification code...`;
+
+        // Step 2: Start verification
+        const verRes = await fetch(`${API}/api/roblox/start-verification`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roblox_id: currentRobloxId })
+        });
+
+        const verData = await verRes.json();
+
+        if (!verRes.ok) {
+          status.textContent = verData.error || "Failed to start verification.";
+          return;
+        }
+
+        status.innerHTML =
+          `<span class="text-sm text-gray-300">Verification code generated.</span><br><br>` +
+          `<span class="text-xs text-gray-400">Paste this code into your Roblox profile bio:</span><br>` +
+          `<span class="text-blue-400 text-xl font-bold font-mono">${verData.code}</span><br><br>` +
+          `<span class="text-xs text-gray-400">After saving your bio, click "I Added the Code — Verify Me".</span>`;
+
+        verifyBtn.classList.remove("hidden");
+
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Network error. Please try again.";
+      }
+    }
+
+    // Step 3: Check verification
+    async function checkVerification() {
+      const status = document.getElementById("loginResult");
+
+      if (!currentRobloxId) {
+        status.textContent = "Start verification first by entering your username.";
+        return;
+      }
+
+      status.textContent = "Checking your Roblox bio for the code...";
+
+      try {
+        const res = await fetch(`${API}/api/roblox/check`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roblox_id: currentRobloxId })
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-          result.textContent = data.error || "Login failed";
+          status.textContent = data.error || "Verification failed. Make sure the code is in your bio.";
           return;
         }
 
-        // Save login data
+        // Save login data locally
         localStorage.setItem("usafe_token", data.token);
-        localStorage.setItem("usafe_roblox_id", data.robloxId);
+        localStorage.setItem("usafe_roblox_id", data.roblox_id);
         localStorage.setItem("usafe_username", data.username);
-        localStorage.setItem("usafe_display_name", data.displayName);
+        localStorage.setItem("usafe_display_name", data.display_name);
 
-        result.textContent = "Success! Redirecting...";
+        status.textContent = "Verification successful! Redirecting to your dashboard...";
 
         setTimeout(() => {
           window.location.href = "dashboard.html";
-        }, 800);
+        }, 900);
 
       } catch (err) {
-        result.textContent = "Network error";
+        console.error(err);
+        status.textContent = "Network error while verifying. Try again.";
       }
     }
   </script>
